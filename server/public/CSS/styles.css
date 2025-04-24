@@ -1,0 +1,272 @@
+body {
+  background-color: rgb(202, 233, 171);
+  height: 100vh;
+}
+
+nav {
+  background-color: #000066;
+  color: white;
+}
+
+#logo {
+  margin-left: 1em;
+  color: white;
+}
+
+#tagline {
+  color: gold;
+  padding-right: 3px;
+  padding-bottom: 3px;
+  margin-top: -12px;
+  font-weight: normal;
+  border-top: 2px dashed red;
+  border-top-right-radius: 8px;
+  box-shadow: 3px -1px 2px 2px rgb(244, 164, 96, 0.2);
+}
+
+.sidebar {
+  width: 14rem;
+  min-height: 100vh;
+
+  display: flex;
+
+  padding-top: 20px;
+  padding-bottom: 20px;
+  padding-left: 14px;
+  background-color: gold;
+
+}
+
+.sidebar li {
+  margin-top: 6px;
+  padding: 4px 20px;
+}
+
+.sidebar a {
+  color: black;
+  font-size: 20px;
+  text-decoration: none;
+}
+
+.sidebar li:hover {
+  background: #000066;
+  color: aqua;
+  border-left: 1px solid rgb(22, 9, 9);
+  box-shadow: 0 0 4px rgba(100, 49, 184, 0.5);
+}
+
+.wrapper {
+  display: flex;
+}
+
+#pagewrapper {
+  width: 100%;
+}
+
+#pagewrapper h2 {
+  padding-left: 20px;
+  padding-top: 10px;
+}
+
+#docArea {
+  /*background: url(/public/images/field.JPG) right no-repeat;*/
+  background-size: cover;
+  background-color: rgb(96, 97, 167);
+  background-blend-mode: overlay;
+  height: 90%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+footer {
+  text-align: center;
+  color: white;
+  background-color: gray;
+  position: fixed;
+  bottom: 0;
+  width: 100%;
+  height: 40px;
+}
+
+footer p {
+  align-self: center;
+  padding: 5px;
+  position: static;
+}
+
+#actionArea {
+  width: fit-content;
+  height: fit-content;
+  margin: auto;
+  padding: 10px;
+
+  position: absolute;
+  top: 55%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+#actionArea>form {
+  padding: 40px 100px;
+  border-left: 5px solid gold;
+  border-right: 5px solid gold;
+  border-radius: 15px;
+}
+
+#container1 {
+  display: flex;
+  justify-content: space-between;
+}
+
+#container2 {
+  background-color: aqua;
+}
+
+#descriptor {
+  color: white;
+  background-color: #000066;
+
+  padding: 50px;
+  margin-left: -0.99em;
+  height: auto;
+  justify-self: flex-start;
+}
+
+nav>ul {
+  display: flex;
+  flex-direction: row;
+  justify-content: end;
+  margin-right: 2%;
+}
+
+nav>ul>a>li {
+  list-style: none;
+  font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+  font-size: x-large;
+  font-weight: bolder;
+
+  justify-self: end;
+  width: 120;
+  height: auto;
+  padding: 5px;
+  margin-right: 10px;
+
+  text-align: center;
+  background-color: black;
+  color: rgb(222, 184, 135);
+}
+
+#actionList>ul {
+  margin-top: 3%;
+}
+
+#actionList>ul>li {
+  font-size: x-large;
+  font-weight: 600;
+  color: gold;
+
+  width: fit-content;
+  padding-left: 5px;
+  padding-right: 20px;
+  padding-bottom: 2px;
+  margin-bottom: 3px;
+
+  border-bottom: 4px solid white;
+  border-bottom-right-radius: 25%;
+  border-bottom-left-radius: 18%;
+}
+
+#userName {
+  font-size: small;
+  color: burlywood;
+}
+
+#dropzone {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  background-color: rgb(202, 233, 171);
+  color: black;
+
+  padding: 2px;
+  margin: 1%;
+  border: 2px dashed black;
+  border-radius: 2%;
+  width: auto;
+  height: 70vh;
+}
+
+#dropzone.active {
+  border: 2px solid black;
+  background-color: chartreuse;
+}
+
+#dropzone form {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+#dropzone header {
+  color: rgb(6, 33, 114);
+  font-size: xx-large;
+  font-weight: 500;
+  align-self: center;
+  justify-self: center;
+}
+
+#dropzone button {
+  color: rgb(202, 233, 171);
+  background-color: rgb(6, 33, 114);
+
+  font-size: large;
+  font-weight: 600;
+  padding: 5px 10px;
+  margin: 4px;
+  border-radius: 6px;
+}
+
+#upload-button {
+  background-color: rgb(6, 33, 114);
+}
+
+#authortag {
+  padding: 2px;
+  font-weight: bolder;
+
+  color: gold;
+  border-radius: 35%;
+}
+
+.popup-position {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  background-color: rgba(0, 0, 0, 0.7);
+  width: 100%;
+  height: 100%;
+
+  /*  The Modal Wrapper */
+}
+
+#popup-wrapper {
+  text-align: left;
+}
+
+/* The Modal Container */
+#popup-container {
+
+  background-color: gold;
+  padding: 20px;
+  border-radius: 10px;
+  width: 40%;
+  margin: 70px auto;
+}
+
+#popup-container a {
+  cursor: pointer;
+}

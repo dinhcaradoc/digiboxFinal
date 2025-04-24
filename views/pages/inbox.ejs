@@ -1,0 +1,16 @@
+<!--View for the Inbox page-->
+<div class="wrapper">
+  <%- include ../home %>
+
+    <div id="pagewrapper">
+      <div class="flex" style="display: flex; flex-direction: row; justify-content: space-between">
+        <h2> Welcome to your Inbox </h2>
+        <label for="fileUpload" class="btn btn-primary btn-lg m-2 h5 p5">
+          Choose File
+          <input type="file" id="baseFileUpload" name="uploadedFile" style="display:none;">
+        </label>
+      </div>
+
+      <%- include ../partials/docArea %>
+    </div>
+</div>
