@@ -1,8 +1,8 @@
 import { useState } from 'react';
-import Navbar from '../components/Navbar';
+// import Navbar from '../components/layout/Navbar';
 import UploadModal from '../components/features/UploadModal';
 import PrintModal from '../components/features/PrintModal';
-import bgImage from '../assets/landing-uni-way.jpg';
+import bgImage from '../assets/landing-uni-way.JPG';
 
 const Home = () => {
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
@@ -20,7 +20,7 @@ const Home = () => {
         aria-hidden="true"
       />
       <div className="relative z-10 flex flex-col min-h-screen">
-        <Navbar />
+        {/* Navbar */}
         <main className='flex-grow flex flex-col items-center justify-center px-4 py-12'>
           <div className='max-w-2xl text-center'>
             {/* Logo/Brand Name */}

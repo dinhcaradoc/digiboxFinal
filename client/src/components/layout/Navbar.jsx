@@ -1,7 +1,13 @@
 import { Link, useLocation } from 'react-router-dom';
 import { useState } from 'react';
 
+import logo from '../../assets/logo.png'; // Adjust the path to your logo image
 
+const navLinks = [
+  { to: '/login', label: 'Login' },
+  { to: '/signup', label: 'Sign Up' },
+  { to: '/enterprise', label: 'Enterprise' },
+];
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);

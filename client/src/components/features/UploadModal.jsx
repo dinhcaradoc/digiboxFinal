@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState, useRef } from "react";
 import { useDropzone } from "react-dropzone";
 
 const UploadModal = ({ onClose }) => {
@@ -50,6 +50,7 @@ const UploadModal = ({ onClose }) => {
     formData.append("phoneNumber", phoneNumber);
     formData.append("recepientPhone", recepientPhone);
     formData.append("message", message);
+
     try {
       const response = await fetch("/api/upload", {  //Insert actual api route
         method: "POST",
@@ -58,7 +59,7 @@ const UploadModal = ({ onClose }) => {
 
       if (response.ok) {
         const result = await response.json();
-        alert("Document upload was successful!");
+        alert("Document upload was successful!: " + result);
         onClose();
       } else {
         const error = await response.json();
@@ -74,7 +75,7 @@ const UploadModal = ({ onClose }) => {
 
   return (
     <div className="fixed inset-0 flex items-center justify-center z-50 p-4 bg-black bg-opacity-50">
-      <div className="bg-white rounded-lg shadow-xl w-full max-w-md overflow-hidden">
+      <div className="bg-white rounded-lg shadow-2xl w-full max-w-md mx-4 p-2 max-h-[90vh] overflow-y-auto">
         <div className="flex justify-between items-center bg-blue-600 text-white p-4">
           <h2 className="text-xl font-semibold">Upload Document</h2>
           <button
@@ -135,8 +136,9 @@ const UploadModal = ({ onClose }) => {
             </div>
           )}
 
-          <div className="flex flex-col">
-            <label htmlFor="phoneNumber" className="font-semibold text-gray-700 mb-1">
+          <div className="flex items-center mb-2">
+            <label htmlFor="phoneNumber" 
+            className="w-35 font-semibold text-gray-700 mb-1">
               Your Phone Number
             </label>
             <input
@@ -144,28 +146,31 @@ const UploadModal = ({ onClose }) => {
               id="phoneNumber"
               value={phoneNumber}
               onChange={(e) => setPhoneNumber(e.target.value)}
-              className="border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="Enter phone number: +254xxx xxx xxx"
+              className="flex-1 rounded border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="+254 xxx xxx xxx"
               required
             />
           </div>
 
-          <div className="flex flex-col">
-            <label htmlFor="recepientPhone" className="font-semibold text-gray-700 mb-1">
-              Recepient Phone Number
+          <div className="flex items-center mb-2">
+            <label
+              htmlFor="recepientPhone"
+              className="w-35 font-semibold text-gray-700 mb-1"
+            >
+              Recepient Phone (Optional)
             </label>
             <input
               type="tel"
               id="recipientPhone"
-              value={recipientPhone}
+              value={recepientPhone}
               onChange={e => setRecipientPhone(e.target.value)}
-              className="border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="Enter phone number: +254xxx xxx xxx"
+              className="flex-1 rounded border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="+254 xxx xxx xxx"
             />
           </div>
 
           <div className="flex flex-col">
-            <label htmlFor="message" className="mb-1 font-semibold text-gray-700">
+            <label htmlFor="message" className="mb-2 font-semibold text-gray-700">
               Message (Optional)
             </label>
             <textarea
