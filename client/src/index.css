@@ -3,3 +3,16 @@
 button {
   cursor: pointer;
 }
+
+@theme {
+  --color-gold-50: #fffbea;
+  --color-gold-100: #fff3c4;
+  --color-gold-200: #fce588;
+  --color-gold-300: #fadb5f;
+  --color-gold-400: #f7c948;
+  --color-gold-500: #f0b429;
+  --color-gold-600: #de911d;
+  --color-gold-700: #cb6e17;
+  --color-gold-800: #b44d12;
+  --color-gold-900: #8d2b0b;
+}

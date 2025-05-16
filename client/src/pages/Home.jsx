@@ -14,7 +14,10 @@ const Home = () => {
       <div className='absolute inset-0 w-full h-full bg-cover bg-center pointer-events-none'
         style={{
           backgroundImage: `url(${bgImage})`,
-          opacity: 0.18,
+          backgroundColor: "#2A616D",
+          backgroundBlendMode: "hard-light",
+          backgroundRepeat: "no-repeat",
+          opacity: 0.44,
           zIndex: 0,
         }}
         aria-hidden="true"
@@ -29,24 +32,32 @@ const Home = () => {
             </h1>
 
             {/* Compelling headline that hints about features and benefits to expect */}
-            <p className='text-base sm:text-xl text-gray-700 mb-10 sm:mb-12'>
+            <p className='text-base sm:text-xl text-gray-800 mb-5 sm:mb-6'>
               Your one stop solution to manage your documents on the go.<br className='hidden sm:inlne' />
-              Upload, print, share, and more - from one centralized interface.
+              Upload, share, print and more.
             </p>
 
+            {/* Gold accent badge */}
+            <div className="mb-10 flex justify-center">
+              <span className="inline-block bg-gold-600 text-black px-4 py-1 rounded-full font-medium shadow-sm">
+                Secure. Fast. Reliable.
+              </span>
+            </div>
+
             {/* Call-to-action buttons */}
-            <div className='flex flex-col sm:flex-row justify-center gap-4 sm:gap-6'>
-              <button className='px-8 py-3 bg-blue-600 text-white text-lg font-medium rounded-md shadow-md hover:bg-blue-700 transition-colors'
-              onClick={() => setIsUploadModalOpen(true)}
+            <div className='flex flex-col sm:flex-row justify-center items-center gap-4 sm:gap-16'>
+              <button className='sm:w-32 w-full px-8 py-3 bg-blue-600 text-white text-lg font-medium rounded-md shadow-md hover:bg-blue-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-300'
+                onClick={() => setIsUploadModalOpen(true)}
               >
                 Upload
               </button>
-              <button className='px-8 py-3 bg-blue-600 text-white text-lg font-medium rounded-md shadow-md hover:bg-blue-700 transition-colors'
-              onClick={() => setIsPrintModalOpen(true)}
+              <button className='sm:w-32 w-full px-8 py-3 bg-blue-600 text-white text-lg font-medium rounded-md shadow-md hover:bg-blue-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-300'
+                onClick={() => setIsPrintModalOpen(true)}
               >
                 Print
               </button>
             </div>
+
           </div>
         </main>
 
