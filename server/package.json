@@ -22,6 +22,7 @@
     "express-layout": "^0.1.0",
     "express-session": "^1.18.1",
     "fs": "^0.0.1-security",
+    "googleapis": "^148.0.0",
     "json-server": "^0.17.4",
     "jsonwebtoken": "^9.0.2",
     "lodash": "^4.17.21",
