@@ -1,9 +1,9 @@
 import { BrowserRouter as Router, Routes, Route, Outlet } from 'react-router-dom';
 import Navbar from './components/layout/Navbar';
 import Home from './pages/Home';
-// import Login from './pages/Login';
-// import Dashboard from './pages/Dashboard';
-// import other pages as needed
+import Register from './pages/Register';
+import Login from './pages/Login';
+import PhoneVerification from './pages/PhoneVerification'; // Add this component
 
 // Layout for public pages (with Navbar)
 function PublicLayout() {
@@ -22,14 +22,16 @@ function App() {
         {/* Public pages with Navbar */}
         <Route element={<PublicLayout />}>
           <Route path="/" element={<Home />} />
-          {/* Add more public routes here, e.g.: */}
-          {/* <Route path="/enterprise" element={<Enterprise />} /> */}
+          {/* Add more public routes here */}
         </Route>
 
-        {/* Auth/Private pages WITHOUT Navbar */}
-        {/* <Route path="/login" element={<Login />} />
-        <Route path="/dashboard" element={<Dashboard />} /> */}
-        {/* Add more private routes as needed */}
+        {/* Auth pages WITHOUT Navbar */}
+        <Route path="/register" element={<Register />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/phone" element={<PhoneVerification />} />
+
+        {/* Private/protected pages (add later) */}
+        {/* <Route path="/dashboard" element={<Dashboard />} /> */}
       </Routes>
     </Router>
   );
