@@ -1,5 +1,4 @@
-import { BrowserRouter as Router, Routes, Route, Outlet } from 'react-router-dom';
-import Navbar from './components/layout/Navbar';
+import { HelmetProvider } from 'react-helmet-async'; // Import HelmetProvider
 import Home from './pages/Home';
 import Register from './pages/Register';
 import Login from './pages/Login';
@@ -17,6 +16,7 @@ function PublicLayout() {
 
 function App() {
   return (
+    <HelmetProvider> {/* Wrap the entire app with HelmetProvider */}
     <Router>
       <Routes>
         {/* Public pages with Navbar */}
@@ -34,6 +34,7 @@ function App() {
         {/* <Route path="/dashboard" element={<Dashboard />} /> */}
       </Routes>
     </Router>
+    </HelmetProvider>
   );
 }
 
