@@ -59,7 +59,7 @@ const PhoneVerification = ({ onSubmit }) => {
                 setPhone(e.target.value);
                 setError(''); // Clear error on input change
               }}
-              className="w-full p-3 mt-4 rounded border border-gray-300 bg-gray-50 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full p-3 rounded border border-gray-300 bg-gray-50 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
               required
               autoFocus
             />
@@ -73,6 +73,7 @@ const PhoneVerification = ({ onSubmit }) => {
         </form>
       </div>
     </div>
+    </>
   );
 };
 
