@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { GoogleLogin } from '@react-oauth/google';
+import Head from '../components/layout/Head';
 
 const Login = ({ onSuccess }) => {
   const [email, setEmail] = useState('');
@@ -36,6 +37,11 @@ const Login = ({ onSuccess }) => {
   };
 
   return (
+    <>
+      <Head 
+        title="Login - DigiBox Chapisha" 
+        description="Sign in to your DigiBox Chapisha account to manage your documents."
+      />
     <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center py-8 px-4 sm:px-6">
       <div className="w-full max-w-sm sm:max-w-md bg-white rounded-lg shadow-lg p-6 sm:p-8 border border-gray-200">
         <h2 className="text-2xl sm:text-3xl font-bold text-blue-700 mb-4 text-center">

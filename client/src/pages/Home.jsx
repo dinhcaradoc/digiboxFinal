@@ -3,12 +3,16 @@ import { useState } from 'react';
 import UploadModal from '../components/features/UploadModal';
 import PrintModal from '../components/features/PrintModal';
 import bgImage from '../assets/landing-uni-way.JPG';
+import Head from '../components/layout/Head';
 
 const Home = () => {
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
   const [isPrintModalOpen, setIsPrintModalOpen] = useState(false);
 
   return (
+    <>
+      {/* Dynamic Head Metadata */}
+      <Head title="Home" description="Manage your documents on the go." />
     <div className='min-h-screen flex flex-col bg-gray-50 relative'>
       {/*Background image */}
       <div className='absolute inset-0 w-full h-full bg-cover bg-center pointer-events-none'
