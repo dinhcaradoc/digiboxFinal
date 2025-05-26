@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Head from '../components/layout/Head';
+import { ExclamationTriangleIcon } from '@heroicons/react/24/outline';
 
 const PhoneVerification = ({ onSubmit }) => {
   const [phone, setPhone] = useState('');
@@ -41,8 +42,9 @@ const PhoneVerification = ({ onSubmit }) => {
           Enter your phone number to verify your account
         </p>
         {error && (
-          <div className="bg-red-50 text-red-700 p-3 rounded-md text-sm mb-4 text-center">
-            {error}
+            <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded-lg flex items-center gap-2">
+              <ExclamationTriangleIcon className="w-5 h-5" />
+              <span>{error}</span>
           </div>
         )}
         <form onSubmit={handleSubmit} className="space-y-4">

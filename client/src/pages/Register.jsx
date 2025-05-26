@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { GoogleLogin } from '@react-oauth/google';
 import Head from '../components/layout/Head';
+import { EyeIcon, EyeSlashIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline';
 
 const Register = ({ onSuccess }) => {
   const [email, setEmail] = useState('');
@@ -56,8 +57,9 @@ const Register = ({ onSuccess }) => {
         </p>
 
         {error && (
-          <div className="bg-red-50 text-red-700 p-3 rounded-md text-sm mb-4">
-            {error}
+          <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded-lg flex items-center gap-2">
+              <ExclamationTriangleIcon className="w-5 h-5" />
+              <span>{error}</span>
           </div>
         )}
 
