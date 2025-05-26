@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { GoogleLogin } from '@react-oauth/google';
+import { Link } from 'react-router-dom';
 import Head from '../components/layout/Head';
 import { EyeIcon, EyeSlashIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline';
 
@@ -45,8 +46,8 @@ const Login = ({ onSuccess }) => {
         description="Sign in to your DigiBox Chapisha account to manage your documents."
       />
     <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center py-8 px-4 sm:px-6">
-      <div className="w-full max-w-sm sm:max-w-md bg-white rounded-lg shadow-lg p-6 sm:p-8 border border-gray-200">
-        <h2 className="text-2xl sm:text-3xl font-bold text-blue-700 mb-4 text-center">
+        <div className="w-full max-w-sm sm:max-w-md bg-white rounded-lg shadow-lg p-4 sm:p-6 border border-gray-200">
+          <h2 className="text-2xl sm:text-3xl font-bold text-blue-700 mb-3 text-center">
           Welcome Back!
         </h2>
         
@@ -107,23 +108,23 @@ const Login = ({ onSuccess }) => {
           </div>
           
           <div className="flex items-center justify-end">
-            <a className="text-sm text-blue-600 hover:text-blue-800" href="/forgot-password">
+            <Link className="text-sm text-blue-600 hover:text-blue-800" to="/forgot-password">
               Forgot Password?
-            </a>
+            </Link>
           </div>
           
           <button
             type="submit"
             disabled={isLoading}
-            className={`w-full py-3 bg-blue-600 text-white font-bold rounded focus:outline-none focus:ring-2 focus:ring-blue-500 transition
-              ${isLoading ? 'opacity-70 cursor-not-allowed' : 'hover:bg-gold-500 hover:text-black'}`}
+            className={`w-full py-3 bg-blue-600 text-white font-bold hover:bg-gold-500 hover:text-black rounded focus:outline-none focus:ring-2 focus:ring-blue-500 transition
+              ${isLoading ? 'opacity-70 cursor-not-allowed' : ''}`}
           >
             {isLoading ? 'Logging In...' : 'Log In'}
           </button>
         </form>
 
         {/* ---or--- separator */}
-        <div className="flex items-center my-6">
+        <div className="flex items-center my-4">
           <div className="flex-grow border-t border-gray-300" />
           <span className="mx-3 text-gray-700 font-semibold">or</span>
           <div className="flex-grow border-t border-gray-300" />
@@ -143,23 +144,23 @@ const Login = ({ onSuccess }) => {
             text="continue_with"
             shape="pill"
           />
+          </div>
+          
+          <p className="mt-6 text-center text-gray-700 text-xs sm:text-sm">
+            New to Digibox?{' '}
+            <Link to="/register" className="text-blue-600 hover:text-gold-600 font-semibold transition-colors">
+              Create an Account
+            </Link>
+          </p>
         </div>
         
-        <p className="mt-6 text-center text-gray-700 text-sm sm:text-base">
-          New to Digbox?{' '}
-          <a href="/register" className="text-blue-600 hover:text-gold-600 font-semibold">
-            Create an Account
-          </a>
+        <p className="mt-4 text-center text-gray-500 text-xs sm:text-sm px-4">
+          By logging in, you agree to our{' '}
+          <Link to="/terms" className="underline hover:text-gray-700 transition-colors">Terms of Service</Link> and{' '}
+          <Link to="/privacy" className="underline hover:text-gray-700 transition-colors">Privacy Policy</Link>
         </p>
       </div>
-      
-      {/* Terms and privacy links */}
-      <p className="mt-6 text-center text-gray-500 text-xs sm:text-sm px-4">
-        By logging in, you agree to our{' '}
-        <a href="/terms" className="underline hover:text-gray-700">Terms of Service</a> and{' '}
-        <a href="/privacy" className="underline hover:text-gray-700">Privacy Policy</a>
-      </p>
-    </div>
+    </>
   );
 };
 

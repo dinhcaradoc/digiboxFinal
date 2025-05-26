@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { GoogleLogin } from '@react-oauth/google';
+import { Link } from 'react-router-dom';
 import Head from '../components/layout/Head';
 import { EyeIcon, EyeSlashIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline';
 
@@ -48,8 +49,8 @@ const Register = ({ onSuccess }) => {
         description="Create an account to start managing your documents securely."
       />
     <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center py-8 px-4 sm:px-6">
-      <div className="w-full max-w-sm sm:max-w-md bg-white rounded-lg shadow-lg p-6 sm:p-8 border border-gray-200">
-        <h2 className="text-2xl sm:text-3xl font-bold text-blue-700 mb-4 text-center">
+        <div className="w-full max-w-sm sm:max-w-md bg-white rounded-lg shadow-lg p-4 sm:p-6 border border-gray-200">
+          <h2 className="text-2xl sm:text-3xl font-bold text-blue-700 mb-3 text-center">
           Create Account
         </h2>
         
@@ -88,7 +89,7 @@ const Register = ({ onSuccess }) => {
               <div className="relative">
             <input
               id="password"
-              type="password"
+                  type={showPassword ? "text" : "password"}
               placeholder="Minimum 8 characters"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
@@ -107,19 +108,29 @@ const Register = ({ onSuccess }) => {
                     <EyeIcon className="w-5 h-5" />
                   )}
                 </button>
+</div>
+              {password && (
+                <div className="mt-1 text-xs text-gray-500">
+                  Password strength:
+                  <span className={`font-medium ${password.length >= 8 ? 'text-green-600' : 'text-red-600'
+                    }`}>
+                    {password.length >= 8 ? ' Strong' : ' Weak'}
+                  </span>
+                </div>
+              )}
           </div>
           
           <button
             type="submit"
             disabled={isLoading}
-            className={`w-full py-3 bg-blue-600 text-white font-bold hover:bg-gold-500 hover:text-black rounded focus:outline-none focus:ring-2 focus:ring-blue-500 transition
+              className={`w-full mt-3 py-3 bg-blue-600 text-white font-bold hover:bg-gold-500 hover:text-black rounded focus:outline-none focus:ring-2 focus:ring-blue-500 transition
               ${isLoading ? 'opacity-70 cursor-not-allowed' : ''}`}
           >
             {isLoading ? 'Creating Account...' : 'Sign Up'}
           </button>
         </form>
 
-        <div className="flex items-center my-6">
+          <div className="flex items-center my-4">
           <div className="flex-grow border-t border-gray-300" />
           <span className="mx-3 text-gray-700 font-semibold">or</span>
           <div className="flex-grow border-t border-gray-300" />
@@ -144,19 +155,19 @@ const Register = ({ onSuccess }) => {
         
         <p className="mt-6 text-center text-gray-700 text-xs sm:text-sm">
           Already have an account?{' '}
-          <a href="/login" className="text-blue-600 hover:text-gold-600 font-semibold">
+          <Link to="/login" className="text-blue-600 hover:text-gold-600 font-semibold transition-colors">
             Log in
-          </a>
+          </Link>
         </p>
       </div>
       
-      {/* Terms and privacy links */}
-      <p className="mt-6 text-center text-gray-500 text-xs sm:text-sm px-4">
+            <p className="mt-6 text-center text-gray-500 text-xs sm:text-sm px-4">
         By creating an account, you agree to our{' '}
-        <a href="/terms" className="underline hover:text-gray-700">Terms of Service</a> and{' '}
-        <a href="/privacy" className="underline hover:text-gray-700">Privacy Policy</a>
+        <Link to="/terms" className="underline hover:text-gray-700 transition-colors">Terms of Service</Link> and{' '}
+        <Link to="/privacy" className="underline hover:text-gray-700 transition-colors">Privacy Policy</Link>
       </p>
     </div>
+</>
   );
 };
 
