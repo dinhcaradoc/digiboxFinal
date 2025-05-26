@@ -143,6 +143,7 @@ const Login = ({ onSuccess }) => {
             theme="filled_black"
             text="continue_with"
             shape="pill"
+              disabled={isLoading}
           />
           </div>
           

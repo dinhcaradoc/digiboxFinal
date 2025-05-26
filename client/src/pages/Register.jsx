@@ -150,6 +150,7 @@ const Register = ({ onSuccess }) => {
             text="continue_with"
             shape="pill"
             width="100%"
+              disabled={isLoading}
           />
         </div>
         
