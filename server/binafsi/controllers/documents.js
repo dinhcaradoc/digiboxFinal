@@ -5,7 +5,7 @@ const express = require('express');
 
 let router = express.Router();
 
-router.get('/getall', getDoc.getFiles); //The getFile function fetches all documents associated with a aprticular parameter. E.g. it currently fetches all documents associated with a particular phone number
+router.get('/getall', getDoc.getFiles); //The getFile function fetches all documents associated with a particular parameter. E.g. it currently fetches all documents associated with a particular phone number
 
 router.post('/shortcode', getDoc.getServiceDoc); //Callback url for two-way sms
 
@@ -13,7 +13,7 @@ router.post('/serviceDoc', getDoc.shareServiceDocs); //Service line for document
 
 router.delete('/document/:documentId', getDoc.docDelete);
 
-router.post('/sendletter', getDoc.massShareDocs)  //Mass document distribution for files from word
+router.post('/sendletter', getDoc.massShareDocs)  //Mass document distribution for files from miscrosoft word
 
 router.post('/sharefile', getDoc.share_file); //Allow user to share files
 
