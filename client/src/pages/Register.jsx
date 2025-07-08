@@ -1,17 +1,19 @@
 import React, { useState } from 'react';
 import { GoogleLogin } from '@react-oauth/google';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import Head from '../components/layout/Head';
 import { EyeIcon, EyeSlashIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline';
 
 const Register = ({ onSuccess }) => {
+  const [name, setName ] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const navigate = useNavigate();
 
-  // Email/password submit
+  // Email/password submit - just collect data and move to phone step
   const handleSubmit = async (e) => {
     e.preventDefault();
     // Reset error state
@@ -31,14 +33,36 @@ const Register = ({ onSuccess }) => {
     }
 
     try {
-      // TODO: API call to register user
-      await new Promise(resolve => setTimeout(resolve, 1000)); // Simulating API call
-      sessionStorage.setItem('pendingPhoneVerification', 'true');
-      onSuccess({ provider: 'email', email, password });
+      // Store registration data temporarily for the phone verification step
+      sessionStorage.setItem('registrationData', JSON.stringify({
+        name,
+        email,
+        password
+      }));
+      
+      console.log('Moving to phone verification with:', {name, email});
+      
+      // Navigate to phone verification
+      navigate('/phone');
+      
+      if (onSuccess) {
+        onSuccess({ provider: 'email', email, step: 'phone-verification' });
+      }
     } catch (err) {
-      setError('Registration failed. Please try again.');
+      console.error('Navigation error:', err);
+      setError('Something went wrong. Please try again.');
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleGoogleSuccess = (credentialResponse) => {
+    // Store Google credential for phone verification step
+    sessionStorage.setItem('googleCredential', JSON.stringify(credentialResponse));
+    navigate('/phone');
+    
+    if (onSuccess) {
+      onSuccess({ provider: 'google', token: credentialResponse.code, step: 'phone-verification' });
     }
   };
 
@@ -55,7 +79,7 @@ const Register = ({ onSuccess }) => {
           </h2>
 
           <p className="text-gray-600 mb-6 text-center text-sm sm:text-base">
-            Sign up to Get Started
+            Sign up to get started
           </p>
 
           {error && (
@@ -66,6 +90,22 @@ const Register = ({ onSuccess }) => {
           )}
 
           <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
+                Name
+              </label>
+              <input
+                id="name"
+                type="text"
+                placeholder="Jina Lako Hapa"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                className="w-full p-3 rounded border border-gray-300 bg-gray-50 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                required
+                autoFocus
+              />
+            </div>
+
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
                 Email
@@ -78,7 +118,6 @@ const Register = ({ onSuccess }) => {
                 onChange={(e) => setEmail(e.target.value)}
                 className="w-full p-3 rounded border border-gray-300 bg-gray-50 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 required
-                autoFocus
               />
             </div>
 
@@ -126,7 +165,7 @@ const Register = ({ onSuccess }) => {
               className={`w-full mt-3 py-3 bg-blue-600 text-white font-bold hover:bg-gold-500 hover:text-black rounded focus:outline-none focus:ring-2 focus:ring-blue-500 transition
                 ${isLoading ? 'opacity-70 cursor-not-allowed' : ''}`}
             >
-              {isLoading ? 'Creating Account...' : 'Sign Up'}
+              {isLoading ? 'Processing...' : 'Continue'}
             </button>
           </form>
 
@@ -138,10 +177,7 @@ const Register = ({ onSuccess }) => {
 
           <div>
             <GoogleLogin
-              onSuccess={credentialResponse => {
-                sessionStorage.setItem('pendingPhoneVerification', 'true');
-                onSuccess({ provider: 'google', token: credentialResponse.code });
-              }}
+              onSuccess={handleGoogleSuccess}
               onError={() => setError('Google registration failed. Please try again.')}
               flow="auth-code"
               scope="openid email profile https://www.googleapis.com/auth/drive.file"
