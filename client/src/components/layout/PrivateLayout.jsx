@@ -1,10 +1,13 @@
+// client/src/components/layout/PrivateLayout.jsx
 import React, { useState } from 'react';
 import { Outlet } from 'react-router-dom';
+import { useAuth } from '../../contexts/AuthContext'; // Add this import
 import Header from './Header';
 import Sidebar from './Sidebar';
 
-const PrivateLayout = ({ name, onLogout }) => {
+const PrivateLayout = () => { // Remove props - we'll get data from context
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const { userName, logout } = useAuth(); // Get data from context
 
   return (
     <div className="h-screen flex flex-col overflow-hidden bg-gray-50">
@@ -12,7 +15,7 @@ const PrivateLayout = ({ name, onLogout }) => {
       <Header
         onSidebarToggle={() => setSidebarOpen((open) => !open)}
         isSidebarOpen={sidebarOpen}
-        name={name}
+        name={userName} // Use userName from context
       />
 
       <div className="flex flex-1 overflow-hidden">
@@ -25,8 +28,8 @@ const PrivateLayout = ({ name, onLogout }) => {
           `}
         >
           <Sidebar 
-            name={name} 
-            onLogout={onLogout} 
+            name={userName} // Use userName from context
+            onLogout={logout} // Use logout from context
             onClose={() => setSidebarOpen(false)} 
           />
         </div>
