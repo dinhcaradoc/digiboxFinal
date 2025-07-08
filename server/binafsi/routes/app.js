@@ -28,8 +28,8 @@ let router = express.Router();
 
 router.get('/', checkNotAuthenticated, homeRoute);
 router.use('/home', checkAuthenticated, dashboardController);
-router.use('/login', loginController);
-router.use('/register', registerController);
+router.use('/api/login', loginController);
+router.use('/api/register', registerController);
 router.use('/ussd', ussdController.initUssd);
 router.use('/print', printingController);
 router.post('/download', printingService.printDoc);
