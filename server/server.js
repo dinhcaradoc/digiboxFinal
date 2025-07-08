@@ -7,17 +7,14 @@ const
     express = require('express'),
     bodyParser = require('body-parser'),
     path = require('path'),
-    engine = require('ejs-locals'),
-    layout = require('express-layout'),
+    cors = require('cors'),
     logger = require('morgan'),
     mongoose = require('mongoose'),
     multer = require('multer'),
     passport = require('passport'),
     cookieParser = require('cookie-parser'),
     bcrypt = require('bcrypt'),
-    flash = require('express-flash'),
-    session = require('express-session'),
-    methodOverride = require('method-override');
+    session = require('express-session');
 
 
 module.exports = function () {
@@ -33,11 +30,6 @@ module.exports = function () {
         server.set('port', config.port);
         server.set('hostname', config.hostname);
 
-        server.engine('ejs', engine);
-        server.set('view engine', 'ejs');
-        server.set('views', path.join(__dirname, '../views'));
-
-
         //Returns middleware that parses json
         server.use(cookieParser());
         server.use(bodyParser.json());
@@ -45,19 +37,20 @@ module.exports = function () {
         server.use(express.urlencoded({ extended: false }));
         server.use(logger('dev'));
 
-        server.use('/public', express.static('public'));
+        server.use(cors({
+            origin: process.env.FRONTEND_URL || 'http://localhost:5173', // Replace with your frontend URL in production
+            credentials: true,
+        }));
 
-        server.use(flash());
+        server.use('/public', express.static('public'));
         server.use(session({
             secret: process.env.SESSION_SECRET,
             resave: false,
-            saveUninitialized: true
+            saveUninitialized: false
         }));
 
         server.use(passport.initialize());
         server.use(passport.session());
-        server.use(methodOverride('_method'));
-        server.use(layout());
 
         // make user ID available in templates
         server.use(function (req, res, next) {
