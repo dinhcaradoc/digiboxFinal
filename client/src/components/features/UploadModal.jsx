@@ -11,6 +11,12 @@ const UploadModal = ({ onClose }) => {
   const fileInputRef = useRef(null);
 
   const onDrop = (acceptedFiles) => {
+    const MAX_FILES = 5;
+    if (files.length + acceptedFiles.length > MAX_FILES) {
+      setError(`You can upload a maximum of ${MAX_FILES} files.`);
+      return;
+    }
+    setFiles((prev) => [...prev, ...acceptedFiles]);
     setFiles((prev) => [...prev, ...acceptedFiles]);
   };
 
@@ -34,6 +40,11 @@ const UploadModal = ({ onClose }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
+
+    if (!phoneNumber || !/^\+\d{10,15}$/.test(phoneNumber)) {
+      setError("Please enter a valid phone number in the specified format (e.g., +254712345678).");
+      return;
+    }
 
     if (files.length === 0) {
       setError("Select at least one file to upload.");
