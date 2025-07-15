@@ -1,126 +1,98 @@
 //Redirects user requests to the appropriate URL. I.e., it handles all routing requests to the server
-'use strict'
+'use strict';
 
-//calling dependencies
-const
-  express = require('express'),
-  bcrypt = require('bcrypt'),
-  passport = require('passport'),
-  multer = require('multer'),
-  fs = require('fs');
+const express = require('express');
+const passport = require('passport');
+const fs = require('fs');
+const path = require('path');
 
-//specifying controllers for various functions
-const
-  registerController = require('./../controllers/apis/register'),
-  loginController = require('./../controllers/apis/login'),
-  dashboardController = require('./../controllers/apis/dashboard'),
-  printingController = require('./../controllers/apis/print'),
-  ussdController = require('./../controllers/apis/ussd'),
-  printingService = require('./../services/authentication/printerAuth'),
-  uploadController = require('./../controllers/apis/doc-upload'),
-  apiController = require('../controllers/documents'),
-  homeRoute = require('./home');
+const router = express.Router();
+
+// ─── CONTROLLERS ─────────────────────────────────────────────── //
+const registerController = require('../controllers/apis/register');
+const loginController = require('../controllers/apis/login');
+const dashboardController = require('../controllers/apis/dashboard');
+const printingController = require('../controllers/apis/print');
+const uploadController = require('../controllers/apis/doc-upload');             // ✅ Anonymous upload handler
+const printingService = require('../services/authentication/printerAuth');
+const ussdController = require('../controllers/apis/ussd');
+const apiController = require('../controllers/documents');
+const homeRoute = require('./home');
 
 const User = require('../models/user');
-const Document = require('../models/document')
 
-let router = express.Router();
+// ─── MIDDLEWARE SETUP ─────────────────────────────────────────── //
+function checkAuthenticated(req, res, next) {
+  if (req.isAuthenticated()) return next();
+  res.redirect('/login');
+}
 
+function checkNotAuthenticated(req, res, next) {
+  if (req.isAuthenticated()) return res.redirect('/home');
+  next();
+}
+
+// ─── ROUTES ────────────────────────────────────────────────────── //
+
+// Home page (landing)
 router.get('/', checkNotAuthenticated, homeRoute);
+
+// Authenticated dashboard
 router.use('/home', checkAuthenticated, dashboardController);
+
+// API: Auth
 router.use('/api/login', loginController);
 router.use('/api/register', registerController);
-router.use('/ussd', ussdController.initUssd);
-router.use('/print', printingController);
-router.post('/download', printingService.printDoc);
-router.use('/test', (req, res) => {
-  res.render('test.ejs', { title: 'Test Page' })
-});
 
-router.get('/inbox', (req, res) => {
-  res.redirect('/home/inbox');
-});
+// API: Anonymous upload (landing page modal)
+router.post('/api/upload', uploadController.handleAnonymousUpload); // ✅ Now handled entirely by the controller
 
-router.get('/priority', (req, res) => {
-  res.redirect('/home/priority');
-});
-
-//Method for viewing contents stored in the filedrop folder
-router.get('/fileDrop/*splat', (req, res) => {
-  const file = path.join(__dirname, '../../', decodeURIComponent(req.url));
-  console.log(file)
-  
-  fs.readFile(file, (err, data) => {
-    if (err) {
-      console.log(err);
-      // res.status(404).send('File not found');
-    } else {
-      res.send(data);
-    }
-  });
-})
-
+// API: Authenticated document actions (inbox, uploads, etc.)
 router.use('/api', apiController);
 
-/* //methods for document upload
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, 'uploads');
-  },
-  filename: (req, file, cb) => {
-    const { originalname } = file;
-    cb(null, originalname);
-  }
-})*/
+// USSD integration
+router.use('/ussd', ussdController.initUssd);
 
-//const upload = multer({ storage: storage });
+// Print handling
+router.use('/print', printingController);
+router.post('/download', printingService.printDoc);
 
-/*router.post('/upload', upload.single('userdoc'), (req, res) => {
-  if (req.files) {
-    console.log(req.files);
-  }
-});*/
-
-router.post('/upload-document', uploadController.upload);
-
-/*router.post('/submitDoc', (req, res) => {
-  let { uploadNumber, uploadMessage } = req.body;
-  const docSendDetails = [ uploadNumber, uploadMessage ];
-  console.log(docSendDetails);
-})*/
-
-router.post('/submitDoc', uploadController.add);
-
-//methods for registering and logging in a user
-const initializePassport = require('../../passport-config');
-
-initializePassport(
-  passport,
-  phone => User.findOne(user => User.phone === phone),
-  id => User.findOne(user => User.id === id)
-);
-
-//logout a user
+// Logout
 router.delete('/logout', (req, res) => {
-  req.logout(function (err) {
-    if (err) { return next(err); }
+  req.logout((err) => {
+    if (err) return next(err);
     res.redirect('/');
   });
 });
 
-function checkAuthenticated(req, res, next) {
-  if (req.isAuthenticated()) {
-    return next();
-  }
+// Optional dev/test
+router.use('/test', (_req, res) => {
+  res.render('test.ejs', { title: 'Test Page' });
+});
 
-  res.redirect('/login');
-};
+// Legacy redirects (optional)
+router.get('/inbox', (_req, res) => res.redirect('/home/inbox'));
+router.get('/priority', (_req, res) => res.redirect('/home/priority'));
 
-function checkNotAuthenticated(req, res, next) {
-  if (req.isAuthenticated()) {
-    return res.redirect('/home');
-  }
-  next();
-}
+// Optional: Browse filedrop contents (for dev/debug only)
+router.get('/fileDrop/*splat', (req, res) => {
+  const file = path.join(__dirname, '../../', decodeURIComponent(req.url));
+  fs.readFile(file, (err, data) => {
+    if (err) {
+      console.log(err);
+      // res.status(404).send('File not found');
+      return res.status(404).send('File not found');
+    }
+    res.send(data);
+  });
+});
+
+// ─── PASSPORT STRATEGY INIT ───────────────────────────────────── //
+const initializePassport = require('../../passport-config');
+initializePassport(
+  passport,
+  async (phone) => await User.findOne({ phone }),
+  async (id) => await User.findById(id)
+);
 
 module.exports = router;
