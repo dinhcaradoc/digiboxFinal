@@ -1,66 +1,38 @@
+// server/models/user.js
 const mongoose = require('mongoose');
-const bcrypt = require('bcrypt');
 
 const UserSchema = new mongoose.Schema({
-  firstname: {
-    type: String,
-    required: true
-  },
-  lastname: {
-    type: String,
-    required: false
-  },
-  email: {
-    type: String,
-    required: true,
-    unique: true
-  },
   phone: {
     type: String,
+    required: true,
     unique: true,
-    required: false,
-    sparse: true
+    validate: {
+      validator: function(v) {
+        return /^\+\d{10,15}$/.test(v);
+      },
+      message: 'Phone number must be in international format'
+    }
   },
-  password: {
-    type: String,
-    required: false // Optional for Google users
+  email: { type: String, required: false, unique: true, sparse: true },
+  firstname: { type: String, required: false },
+  lastname: { type: String, required: false },
+  password: { type: String, required: false },
+  googleId: { type: String, required: false },
+  googleTokens: {
+    accessToken: { type: String },
+    refreshToken: { type: String }
   },
-  googleId: {
-    type: String,
-    required: false,
-    unique: true,
-    sparse: true
+  driveFolderId: { type: String, required: false },
+  accountType: { type: String, enum: ['basic', 'enterprise'], default: 'basic' },
+  enterpriseFeatures: {
+    serviceDocuments: { type: Boolean, default: false }
   },
-  profilePicture: {
-    type: String, // URL to the image
-    required: false
-  },
-  role: {
-    type: String,
-    enum: ['Client', 'Manager', 'Admin'],
-    default: 'Client'
-  },
-  isPhoneVerified: {
-    type: Boolean,
-    default: false
-  },
-  isEmailVerified: {
-    type: Boolean,
-    default: false
-  },
-  createdAt: {
-    type: Date,
-    default: Date.now
-  },
-  updatedAt: {
-    type: Date,
-    default: Date.now
-  }
+  createdAt: { type: Date, default: Date.now },
+  updatedAt: { type: Date, default: Date.now }
 });
 
-UserSchema.pre('save', function (next) {
-  this.updatedAt = Date.now();
-  next();
-});
+// Index for fast phone lookups
+UserSchema.index({ phone: 1 }, { unique: true });
 
 module.exports = mongoose.model('User', UserSchema);
+// This schema defines the structure for user accounts in the system.
