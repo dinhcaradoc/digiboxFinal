@@ -7,36 +7,29 @@ const path = require('path');
 const fs = require('fs').promises;
 const googleDriveService = require('../storage/google-drive-service');
 
+// Helper to normalize phone numbers to international format
+const normalize = (phone) =>
+  phone && phone.startsWith('+') ? phone : `+${phone.replace(/^0+/, '')}`;
+
+// --- ANONYMOUS UPLOAD ---
 exports.handleAnonymousUpload = async ({ senderPhone, recipientPhone, message, files }) => {
   const uploadedDocuments = [];
   let recipientStatus = 'unregistered';
 
-  // Normalize phone numbers
-  const normalize = (phone) =>
-    phone && phone.startsWith('+') ? phone : `+${phone.replace(/^0+/, '')}`;
-
   const sender = await User.findOne({ phone: normalize(senderPhone) });
-  let recipient = null;
-  if (recipientPhone) {
-    recipient = await User.findOne({ phone: normalize(recipientPhone) });
-    recipientStatus = recipient ? 'registered' : 'unregistered';
-  }
+  const recipient = recipientPhone
+    ? await User.findOne({ phone: normalize(recipientPhone) })
+    : null;
+
+  if (recipient) recipientStatus = 'registered';
 
   for (const file of files) {
     const isSelfUpload = !recipientPhone;
-    let fileOwnerUser = null;
+    const targetUser = recipient || (isSelfUpload && sender ? sender : null);
     let newFileMeta = null;
-    let targetUser = null;
     let storageType = 'local';
 
-    // Determine target (who "owns" the file permanently)
-    if (recipient) {
-      targetUser = recipient;
-    } else if (sender && isSelfUpload) {
-      targetUser = sender;
-    }
-
-    // Upload to Google Drive if the target user is registered and has Drive tokens
+    // Upload to Google Drive if user has valid credentials
     if (
       targetUser &&
       targetUser.googleTokens?.accessToken &&
@@ -55,17 +48,17 @@ exports.handleAnonymousUpload = async ({ senderPhone, recipientPhone, message, f
           targetUser.email
         );
 
-        // Cleanup: Remove original file from local temp storage
-        await fs.unlink(file.path);
+        await fs.unlink(file.path); // Clean up temp file
         storageType = 'google_drive';
       } catch (err) {
         console.error('Google Drive upload failed:', err.message);
       }
     }
 
-    let docData = {
+    const docData = {
       name: file.originalname,
       filename: newFileMeta?.name || file.filename,
+      driveFileId: newFileMeta?.fileId || undefined, // Store Drive file ID if present
       attributes: {
         size: newFileMeta?.size || file.size.toString(),
         location: newFileMeta?.downloadLink || file.path,
@@ -79,17 +72,16 @@ exports.handleAnonymousUpload = async ({ senderPhone, recipientPhone, message, f
         isAnonymous: !sender
       },
       source: 'anonymous_upload',
-      isTemporary: !targetUser, // If we lack a registered user, stay temporary
-      storageType, // either 'google_drive' or 'local'
+      isTemporary: !targetUser,
+      storageType,
       expiresAt: !targetUser ? new Date(Date.now() + 72 * 60 * 60 * 1000) : null,
       createdAt: new Date(),
       updatedAt: new Date()
     };
 
-    // Set DB foreign keys only if target user is registered
     if (targetUser) {
       docData.ownerId = targetUser._id;
-      docData.uploadedBy = (isSelfUpload && sender) ? sender._id : undefined;
+      docData.uploadedBy = isSelfUpload && sender ? sender._id : undefined;
     }
 
     const document = new Document(docData);
@@ -98,4 +90,67 @@ exports.handleAnonymousUpload = async ({ senderPhone, recipientPhone, message, f
   }
 
   return { uploadedDocuments, recipientStatus };
+};
+
+// --- AUTHENTICATED UPLOAD ---
+exports.handleAuthenticatedUpload = async ({ user, files }) => {
+  const uploadedDocuments = [];
+  let storageType = 'local';
+
+  for (const file of files) {
+    let newFileMeta = null;
+
+    if (
+      user.googleTokens?.accessToken &&
+      user.googleTokens?.refreshToken &&
+      user.email
+    ) {
+      try {
+        googleDriveService.setUserCredentials(
+          user.googleTokens.accessToken,
+          user.googleTokens.refreshToken
+        );
+
+        newFileMeta = await googleDriveService.uploadFile(
+          file.path,
+          file.originalname,
+          user.email
+        );
+
+        await fs.unlink(file.path);
+        storageType = 'google_drive';
+      } catch (err) {
+        console.error('Google Drive upload failed:', err.message);
+      }
+    }
+
+    const docData = {
+      name: file.originalname,
+      filename: newFileMeta?.name || file.filename,
+      driveFileId: newFileMeta?.fileId || undefined,
+      attributes: {
+        size: newFileMeta?.size || file.size.toString(),
+        location: newFileMeta?.downloadLink || file.path,
+        mimetype: file.mimetype,
+        owner: user.phone
+      },
+      uploadInfo: {
+        uploaderNumber: user.phone,
+        isAnonymous: false
+      },
+      source: 'web_upload',
+      isTemporary: false,
+      storageType,
+      ownerId: user._id,
+      uploadedBy: user._id,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+
+    const document = new Document(docData);
+    await document.save();
+    uploadedDocuments.push(document);
+  }
+
+  return uploadedDocuments;
 };
