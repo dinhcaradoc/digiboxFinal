@@ -1,5 +1,3 @@
-// This module handles the migration of temporary documents to permanent storage,
-
 'use strict';
 
 const Document = require('../../models/document');
@@ -8,9 +6,17 @@ const path = require('path');
 const fs = require('fs').promises;
 const googleDriveService = require('../storage/google-drive-service');
 
+/**
+ * Migrates all temporary documents associated with a phone number to permanent storage.
+ * If user has Google Drive tokens, documents are moved there. Otherwise, to local storage.
+ *
+ * @param {string} userPhone - The phone number associated with temporary documents
+ * @param {string} userId - The authenticated user's MongoDB ObjectId
+ * @returns {Promise<object>} - Result summary
+ */
 async function migrateTemporaryDocuments(userPhone, userId) {
   try {
-    // Find all temporary documents associated with this phone number
+    // 1. Fetch temporary docs tied to user's phone (either owner or recipient)
     const temporaryDocs = await Document.find({
       $or: [
         { 'attributes.owner': userPhone },
@@ -19,59 +25,57 @@ async function migrateTemporaryDocuments(userPhone, userId) {
       isTemporary: true
     });
 
-    // Fetch the user and check for Google Drive integration
     const user = await User.findById(userId);
     const hasDrive =
       user &&
-      user.googleTokens &&
-      user.googleTokens.accessToken &&
-      user.googleTokens.refreshToken &&
+      user.googleTokens?.accessToken &&
+      user.googleTokens?.refreshToken &&
       user.email;
 
-    let migratedDocs = [];
+    const migratedDocs = [];
 
     for (const doc of temporaryDocs) {
       const oldPath = doc.attributes.location;
-      let newLocation, newFilename, driveMeta = null;
+      let driveMeta = null;
 
       if (hasDrive) {
-        // Set Google Drive credentials for this user
+        // -- Google Drive: Upload to user's Drive --
         googleDriveService.setUserCredentials(
           user.googleTokens.accessToken,
           user.googleTokens.refreshToken
         );
 
-        // Upload to user's DigiBox folder in Google Drive
         driveMeta = await googleDriveService.uploadFile(
           oldPath,
           doc.name,
           user.email
         );
 
-        // Update document metadata for Google Drive
-        doc.attributes.location = driveMeta.webViewLink;
+        // Update metadata to point to Drive
+        doc.attributes.location = driveMeta.webViewLink; // <- Browser-friendly view
         doc.filename = driveMeta.name;
         doc.attributes.mimetype = driveMeta.mimetype || doc.attributes.mimetype;
         doc.attributes.size = driveMeta.size || doc.attributes.size;
         doc.storageType = 'google_drive';
         doc.driveFileId = driveMeta.fileId;
 
-        // Remove the local file after successful upload
+        // Remove the local file
         await fs.unlink(oldPath);
       } else {
-        // Fallback: move to permanent local storage
-        newFilename = `migrated-${Date.now()}-${path.basename(oldPath)}`;
-        newLocation = path.join('uploads', newFilename);
+        // -- Local fallback: Move file to permanent directory --
+        const newFilename = `migrated-${Date.now()}-${path.basename(oldPath)}`;
+        const newLocation = path.join('uploads', newFilename);
         await fs.rename(oldPath, newLocation);
 
         doc.attributes.location = newLocation;
         doc.filename = newFilename;
         doc.storageType = 'local';
+        doc.driveFileId = undefined; // Clear Drive ID since it's not on Drive
       }
 
-      // Update document ownership and status
+      // Final metadata updates
       doc.ownerId = userId;
-      doc.uploadedBy = doc.uploadInfo.uploaderNumber === userPhone ? userId : null;
+      doc.uploadedBy = doc.uploadInfo?.uploaderNumber === userPhone ? userId : null;
       doc.isTemporary = false;
       doc.expiresAt = null;
       doc.updatedAt = new Date();
