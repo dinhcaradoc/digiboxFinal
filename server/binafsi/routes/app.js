@@ -17,6 +17,8 @@ const uploadController = require('../controllers/apis/doc-upload');             
 const printingService = require('../services/authentication/printerAuth');
 const ussdController = require('../controllers/apis/ussd');
 const apiController = require('../controllers/documents');
+const authenticatedUploadController = require('../controllers/apis/uploads'); // 👈 new controller
+const checkAuthenticatedAPI = require('../middleware/checkAuthenticatedAPI'); // optional but recommended
 const homeRoute = require('./home');
 
 const User = require('../models/user');
@@ -46,6 +48,12 @@ router.use('/api/register', registerController);
 
 // API: Anonymous upload (landing page modal)
 router.post('/api/upload', uploadController.handleAnonymousUpload); // ✅ Now handled entirely by the controller
+// Authenticated upload route
+router.post(
+  '/api/documents/upload',
+  checkAuthenticatedAPI,
+  authenticatedUploadController.handleAuthenticatedUpload
+);
 
 // API: Authenticated document actions (inbox, uploads, etc.)
 router.use('/api', apiController);
