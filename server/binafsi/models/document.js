@@ -4,6 +4,7 @@ const mongoose = require('mongoose');
 const DocumentSchema = new mongoose.Schema({
   name: { type: String, required: true },
   filename: { type: String, required: false },
+  driveFileId: { type: String, required: false }, // <- Drive File ID for Drive-stored docs
   ownerId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: false },
   uploadedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: false },
   attributes: {
@@ -52,12 +53,13 @@ const DocumentSchema = new mongoose.Schema({
     enum: ['web_upload', 'anonymous_upload', 'sms_share', 'word_letter', 'ussd_upload'],
     default: 'web_upload'
   },
+  storageType: { type: String, enum: ['local', 'google_drive'], default: 'local' },
   expiresAt: { type: Date, default: null },
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now }
 });
 
-// Indexes for efficient queries and cleanup
+// (Indexes unchanged)
 DocumentSchema.index({ ownerId: 1, createdAt: -1 });
 DocumentSchema.index({ 'attributes.owner': 1, createdAt: -1 });
 DocumentSchema.index({ 'uploadInfo.uploaderNumber': 1 });
