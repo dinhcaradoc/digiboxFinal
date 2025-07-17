@@ -7,6 +7,7 @@ const navLinks = [
   { to: '/uploads', label: 'My Uploads' },
   { to: '/inbox', label: 'Inbox' },
   { to: '/quickbox', label: 'QuickBox' },
+  { to: '/sent', label: 'Sent Box' },
 ];
 
 const Sidebar = ({ name, onLogout, onClose }) => {

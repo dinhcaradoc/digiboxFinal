@@ -15,6 +15,7 @@ import Dashboard from './pages/Dashboard';
 import Inbox from './pages/Inbox';
 import QuickBox from './pages/QuickBox';
 import Uploads from './pages/Uploads';
+import Sent from './pages/Sent';
 
 // Optional: Enterprise page if it exists
 // import Enterprise from './pages/Enterprise';
@@ -48,6 +49,7 @@ function App() {
               <Route path="/uploads" element={<Uploads />} />
               <Route path="/inbox" element={<Inbox />} />
               <Route path="/quickbox" element={<QuickBox />} />
+              <Route path="/sent" element={<Sent />} />
               {/* If you also want to support /priority as an alias, add: */}
               {/* <Route path="/priority" element={<QuickBox />} /> */}
             </Route>
