@@ -1,43 +1,92 @@
-import React, { useState } from 'react';
-import Head from '../components/layout/Head';
-import DocArea from '../components/features/DocArea';
+// src/pages/Inbox.jsx
+// Inbox page: displays received documents with options to download, delete, and share
+import React, { useEffect, useState } from "react";
+import DocArea from "../components/features/DocArea";
+import ShareModal from "../components/features/ShareModal";
+import { getInbox, downloadDocument, deleteDocument, shareDocument } from "../services/api";
+import Head from "../components/layout/Head";
 
 const Inbox = () => {
-  const [selectedFile, setSelectedFile] = useState(null);
+  const [documents, setDocuments] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [showShareModal, setShowShareModal] = useState(false);
+  const [selectedDocToShare, setSelectedDocToShare] = useState(null);
 
-  const handleFileChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setSelectedFile(file);
-      console.log('Selected file:', file.name);
+  const fetchInbox = async () => {
+    setIsLoading(true);
+    try {
+      const res = await getInbox();
+      setDocuments(res.data || []);
+      setError("");
+    } catch (err) {
+      setError("Failed to fetch inbox documents.");
+    } finally {
+      setIsLoading(false);
     }
+  };
+
+  useEffect(() => {
+    fetchInbox();
+  }, []);
+
+  const handleDownload = (doc) => {
+    downloadDocument(doc.id || doc._id);
+  };
+
+  const handleDelete = async (doc) => {
+    if (window.confirm(`Delete "${doc.name}" from your inbox?`)) {
+      try {
+        await deleteDocument(doc.id || doc._id);
+        setDocuments((prev) => prev.filter((d) => (d.id || d._id) !== (doc.id || doc._id)));
+      } catch {
+        alert("Failed to delete document.");
+      }
+    }
+  };
+
+  const handleShare = (doc) => {
+    setSelectedDocToShare(doc);
+    setShowShareModal(true);
+  };
+
+  const handleShareSubmit = async ({ recipientPhone, message }) => {
+    try {
+      await shareDocument(selectedDocToShare.id || selectedDocToShare._id, recipientPhone, message);
+      setShowShareModal(false);
+      setSelectedDocToShare(null);
+    } catch {
+      alert("Failed to share document.");
+    }
+  };
+
+  const handleShareClose = () => {
+    setShowShareModal(false);
+    setSelectedDocToShare(null);
   };
 
   return (
     <>
       <Head title="Inbox" description="View and manage your received documents" />
-      
-      <div className="h-full flex flex-col">
-        {/* Header area - Fixed height */}
-        <div className="flex-shrink-0 p-4 border-b border-gray-200 flex sm:flex-row justify-between items-start sm:items-center gap-4">
-          <h1 className="text-3xl font-bold text-blue-700">Inbox</h1>
-
-          <label className="inline-flex items-center bg-blue-600 hover:bg-gold-500 text-white hover:text-black font-medium py-2 px-4 rounded-lg cursor-pointer transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-gold-400">
-            Upload a File
-            <input
-              type="file"
-              className="hidden"
-              onChange={handleFileChange}
-              aria-label="Upload document"
-            />
-          </label>
-        </div>
-
-        {/* Document area - Scrollable */}
-        <div className="flex-1 overflow-auto">
-          <DocArea selectedFile={selectedFile} />
-        </div>
-      </div>
+      <section className="container mx-auto px-4 py-6">
+        <h2 className="text-2xl font-semibold text-gray-900 mb-4">Inbox</h2>
+        <DocArea
+          documents={documents}
+          isLoading={isLoading}
+          error={error}
+          onDownload={handleDownload}
+          onDelete={handleDelete}
+          onShare={handleShare}
+          filterLabel="inbox document"
+        />
+        {showShareModal && selectedDocToShare && (
+          <ShareModal
+            document={selectedDocToShare}
+            onSubmit={handleShareSubmit}
+            onClose={handleShareClose}
+          />
+        )}
+      </section>
     </>
   );
 };
