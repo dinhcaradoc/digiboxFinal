@@ -1,7 +1,7 @@
 'use strict';
 
 const multer = require('multer');
-const uploadService = require('../../services/documents/upload');
+const uploadService = require('../../services/documents/uploads');
 
 // Multer configuration for anonymous uploads
 const tempStorage = multer.diskStorage({
