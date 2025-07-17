@@ -2,10 +2,13 @@
 'use strict';
 const express = require('express');
 const loginService = require('../../services/authentication/login');
+const router = express.Router();
 
-let router = express.Router();
-
-// API-only login endpoint
+/**
+ * POST /api/login
+ * Body: { phone, password, provider, googleToken }
+ * Returns: { token, user }
+ */
 router.post('/', loginService.loginUser);
 
 module.exports = router;

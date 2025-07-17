@@ -1,47 +1,32 @@
 // Authentication middleware for handling registration requests
 'use strict';
 
-const express = require('express');
 const User = require('../../models/user');
-const mongoose = require('mongoose');
-const { OAuth2Client } = require('google-auth-library');
 const bcrypt = require('bcrypt');
+const { OAuth2Client } = require('google-auth-library');
 
-const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID); // Ensure this is set in your environment variables
+const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 const httpMessages = {
-  onValidationError: {
-    success: false,
-    message: 'Please enter all required fields.'
-  },
-  onEmailExistsError: {
-    success: false,
-    message: 'That email is already in use'
-  },
-  onPhoneExistsError: {
-    success: false,
-    message: 'That phone number is already in use'
-  },
-  onUserSaveSuccess: {
-    success: true,
-    message: 'Successfully created new user.'
-  }
+  onValidationError: { success: false, message: 'Please enter all required fields.' },
+  onEmailExistsError: { success: false, message: 'That email is already in use' },
+  onPhoneExistsError: { success: false, message: 'That phone number is already in use' },
 };
 
-// Helper function to verify Google token
 async function verifyGoogleToken(token) {
   try {
     const ticket = await client.verifyIdToken({
       idToken: token,
       audience: process.env.GOOGLE_CLIENT_ID,
     });
+
     const payload = ticket.getPayload();
     return {
-      googleId: payload['sub'],
-      email: payload['email'],
-      firstname: payload['given_name'],
-      lastname: payload['family_name'],
-      picture: payload['picture']
+      googleId: payload.sub,
+      email: payload.email,
+      firstname: payload.given_name,
+      lastname: payload.family_name,
+      picture: payload.picture
     };
   } catch (err) {
     console.error('Failed to verify Google token:', err);
@@ -49,52 +34,30 @@ async function verifyGoogleToken(token) {
   }
 }
 
-// Single registration endpoint that handles both email/password and Google registrations
 async function registerUser(req, res) {
   try {
-    console.log('Registration request:', req.body);
-
     const { name, email, password, phone, provider, googleToken } = req.body;
 
-    // Validate phone number (required for all registrations)
-    if (!phone) {
-      return res.status(400).json({
-        success: false,
-        message: 'Phone number is required.'
-      });
+    // Validate phone: required, flexible + optional
+    if (!phone || !/^\+?\d{10,15}$/.test(phone)) {
+      return res.status(400).json({ success: false, message: 'Please enter a valid phone number.' });
     }
 
-    if (!/^\+?\d{10,15}$/.test(phone)) {
-      return res.status(400).json({
-        success: false,
-        message: 'Please enter a valid phone number.'
-      });
-    }
-
-    // Check if phone already exists
-    const existingPhone = await User.findOne({ phone });
-    if (existingPhone) {
+    if (await User.findOne({ phone })) {
       return res.status(400).json(httpMessages.onPhoneExistsError);
     }
 
     let userData;
 
-    // Google Registration Flow
     if (provider === 'google' && googleToken) {
       const googleUser = await verifyGoogleToken(googleToken);
-
       if (!googleUser) {
-        return res.status(400).json({
-          success: false,
-          message: 'Invalid Google token.'
-        });
+        return res.status(400).json({ success: false, message: 'Invalid Google token.' });
       }
 
-      const { email: googleEmail, firstname, lastname, googleId } = googleUser;
+      const { email: googleEmail, firstname, lastname, googleId, picture } = googleUser;
 
-      // Check if email already exists
-      const existingEmail = await User.findOne({ email: googleEmail });
-      if (existingEmail) {
+      if (await User.findOne({ email: googleEmail })) {
         return res.status(400).json(httpMessages.onEmailExistsError);
       }
 
@@ -102,31 +65,28 @@ async function registerUser(req, res) {
         firstname,
         lastname,
         email: googleEmail,
-        password: null, // No password for Google users
+        password: null,
         phone,
         isPhoneVerified: true,
         isEmailVerified: true,
         googleId,
-        profilePicture: googleUser.picture
+        profilePicture: picture
       };
 
     } else {
-      // Email/Password Registration Flow
+      // Standard registration
       if (!name || !email || !password) {
         return res.status(400).json(httpMessages.onValidationError);
       }
 
-      // Check if email already exists
-      const existingEmail = await User.findOne({ email });
-      if (existingEmail) {
+      if (await User.findOne({ email })) {
         return res.status(400).json(httpMessages.onEmailExistsError);
       }
 
-      // Hash password
       const hashedPassword = await bcrypt.hash(password, 10);
 
       userData = {
-        firstname: name.split(' ')[0] || name,
+        firstname: name.split(' ')[0],
         lastname: name.split(' ').slice(1).join(' ') || '',
         email,
         password: hashedPassword,
@@ -136,18 +96,12 @@ async function registerUser(req, res) {
       };
     }
 
-    console.log('User data to be saved:', userData);
-
-    // Create user
     const user = new User(userData);
     await user.save();
 
-    // Log the user in immediately after registration
-    req.session.userId = user._id;
-
     return res.status(201).json({
       success: true,
-      message: 'User created successfully.',
+      message: 'User created successfully. Please log in.',
       user: {
         id: user._id,
         name: `${user.firstname} ${user.lastname}`.trim(),
@@ -158,13 +112,8 @@ async function registerUser(req, res) {
 
   } catch (error) {
     console.error('Registration error:', error);
-    return res.status(500).json({
-      success: false,
-      message: 'Registration failed. Please try again.'
-    });
+    return res.status(500).json({ success: false, message: 'Registration failed. Please try again.' });
   }
 }
 
-module.exports = {
-  registerUser
-};
+module.exports = { registerUser };
