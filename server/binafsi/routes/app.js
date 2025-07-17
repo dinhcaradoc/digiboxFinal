@@ -1,4 +1,6 @@
-//Redirects user requests to the appropriate URL. I.e., it handles all routing requests to the server
+// server/binafsi/routes/app.js
+//This module defines the main application routes for the Binafsi server.
+
 'use strict';
 
 const express = require('express');
@@ -8,22 +10,20 @@ const path = require('path');
 
 const router = express.Router();
 
-// ─── CONTROLLERS ─────────────────────────────────────────────── //
+// ─── CONTROLLERS & ROUTERS ──────────────────────────────── //
 const registerController = require('../controllers/apis/register');
 const loginController = require('../controllers/apis/login');
 const dashboardController = require('../controllers/apis/dashboard');
 const printingController = require('../controllers/apis/print');
-const uploadController = require('../controllers/apis/doc-upload');             // ✅ Anonymous upload handler
+const uploadController = require('../controllers/apis/doc-upload'); // Anonymous uploads (landing)
+const docApiRoutes = require('../controllers/apis/documents');      // ALL /api/documents/...
+const checkAuthenticatedAPI = require('../middleware/checkAuthenticatedAPI');
+const homeRoute = require('./home');
 const printingService = require('../services/authentication/printerAuth');
 const ussdController = require('../controllers/apis/ussd');
-const apiController = require('../controllers/documents');
-const authenticatedUploadController = require('../controllers/apis/uploads'); // 👈 new controller
-const checkAuthenticatedAPI = require('../middleware/checkAuthenticatedAPI'); // optional but recommended
-const homeRoute = require('./home');
-
 const User = require('../models/user');
 
-// ─── MIDDLEWARE SETUP ─────────────────────────────────────────── //
+// ─── MIDDLEWARE SETUP ───────────────────────────────────── //
 function checkAuthenticated(req, res, next) {
   if (req.isAuthenticated()) return next();
   res.redirect('/login');
@@ -34,68 +34,65 @@ function checkNotAuthenticated(req, res, next) {
   next();
 }
 
-// ─── ROUTES ────────────────────────────────────────────────────── //
+// ─── ROUTES ─────────────────────────────────────────────── //
 
-// Home page (landing)
+/* HOMEPAGE (public, landing) */
 router.get('/', checkNotAuthenticated, homeRoute);
 
-// Authenticated dashboard
+/* DASHBOARD (authenticated) */
 router.use('/home', checkAuthenticated, dashboardController);
 
-// API: Auth
+/* AUTHENTICATION ENDPOINTS */
 router.use('/api/login', loginController);
 router.use('/api/register', registerController);
 
-// API: Anonymous upload (landing page modal)
-router.post('/api/upload', uploadController.handleAnonymousUpload); // ✅ Now handled entirely by the controller
-// Authenticated upload route
-router.post(
-  '/api/documents/upload',
-  checkAuthenticatedAPI,
-  authenticatedUploadController.handleAuthenticatedUpload
-);
+/* ANONYMOUS FILE UPLOAD (landing page/modal) */
+router.post('/api/upload', uploadController.handleAnonymousUpload);
 
-// API: Authenticated document actions (inbox, uploads, etc.)
-router.use('/api', apiController);
+/* ALL DOCUMENT API ENDPOINTS (RESTful, modularized) */
+router.use('/api/documents', docApiRoutes);
+// Handles:
+//   - GET      /api/documents             (uploads)
+//   - POST     /api/documents/upload      (authenticated upload)
+//   - DELETE   /api/documents/:id         (delete)
+//   - GET      /api/documents/:id/download
+//   - POST     /api/documents/:id/share
+//   - PATCH    /api/documents/:id/priority (toggle quickbox)
+//   - GET      /api/documents/inbox       (received docs)
+//   - GET      /api/documents/quickbox    (priority docs)
 
-// USSD integration
+/* USSD AND PRINTING */
 router.use('/ussd', ussdController.initUssd);
-
-// Print handling
 router.use('/print', printingController);
 router.post('/download', printingService.printDoc);
 
-// Logout
-router.delete('/logout', (req, res) => {
+/* LOGOUT */
+router.delete('/logout', (req, res, next) => {
   req.logout((err) => {
     if (err) return next(err);
     res.redirect('/');
   });
 });
 
-// Optional dev/test
+/* DEV/TEST ROUTES (only for development) */
 router.use('/test', (_req, res) => {
   res.render('test.ejs', { title: 'Test Page' });
 });
 
-// Legacy redirects (optional)
+/* LEGACY REDIRECTS (optional) */
 router.get('/inbox', (_req, res) => res.redirect('/home/inbox'));
 router.get('/priority', (_req, res) => res.redirect('/home/priority'));
 
-// Optional: Browse filedrop contents (for dev/debug only)
+/* FILE DROP DEBUG/DEV ONLY */
 router.get('/fileDrop/*splat', (req, res) => {
   const file = path.join(__dirname, '../../', decodeURIComponent(req.url));
   fs.readFile(file, (err, data) => {
-    if (err) {
-      console.log(err);
-      // res.status(404).send('File not found');
-      return res.status(404).send('File not found');
-    }
+    if (err) return res.status(404).send('File not found');
     res.send(data);
   });
 });
 
-// ─── PASSPORT STRATEGY INIT ───────────────────────────────────── //
+/* PASSPORT INIT (if using local strategy) */
 const initializePassport = require('../../passport-config');
 initializePassport(
   passport,
