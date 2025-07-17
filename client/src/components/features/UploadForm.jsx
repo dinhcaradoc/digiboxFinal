@@ -1,5 +1,5 @@
 import React, { useRef, useState } from 'react';
-import { uploadDocument, getDocuments } from '../services/api';
+import { uploadDocument, getDocuments } from '../../services/api';
 
 const MAX_FILES = 10;
 const MAX_SIZE_MB = 20;
