@@ -3,7 +3,7 @@
 'use strict'; 
 
 const cron = require('node-cron');
-const Document = require('../models/document');
+const Document = require('../binafsi/models/document'); // Adjust the path as necessary
 const fs = require('fs').promises;
 
 // Function to clean up expired temporary documents
