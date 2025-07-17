@@ -51,6 +51,9 @@ export const getInbox = () => api.get('/api/inbox');
 /** GET: Priority-flagged documents (QuickBox.jsx) */
 export const getPriority = () => api.get('/api/quickbox'); // adjust if your backend uses another route
 
+/** GET: Documents you've sent/shared (Sent.jsx) */
+export const getSentDocs = () => api.get('/api/documents/sent');
+
 /** POST: Upload a document (authenticated) */
 export const uploadDocument = (formData) =>
   api.post('/api/documents/upload', formData, {
@@ -68,9 +71,10 @@ export const downloadDocument = (docId) => {
 };
 
 /** POST: Share a document with another user */
-export const shareDocument = (docId, recipientPhone, message) =>
+// Share with multiple recipients
+export const shareDocument = (docId, recipients, message) =>
   api.post(`/api/documents/${docId}/share`, {
-    recipient: recipientPhone,
+    recipients: Array.isArray(recipients) ? recipients : [recipients],
     message,
   });
 

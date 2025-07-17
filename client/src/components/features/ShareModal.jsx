@@ -3,12 +3,14 @@
 import React, { useState } from "react";
 import { XMarkIcon, DocumentTextIcon, UserIcon, ChatBubbleLeftRightIcon } from "@heroicons/react/24/outline";
 
-// Optionally, move phone validation to a utility!
-const isValidPhone = (phone) =>
-  /^(\+?\d{10,15})$/.test(phone.replace(/[^\d+]/g, "")); // e.g. +254..., 07..., 254...
+const normalizePhones = (input) =>
+  input
+    .split(/[\s,;]+/)
+    .map(s => s.replace(/[^+\d]/g, ''))
+    .filter(Boolean);
 
-export default function ShareModal({ document, onSubmit, onClose }) {
-  const [recipientPhone, setRecipientPhone] = useState("");
+export default function ShareModal({ document, onSubmit, onClose, onSuccess }) {
+  const [recipientsRaw, setRecipientsRaw] = useState("");
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -16,16 +18,34 @@ export default function ShareModal({ document, onSubmit, onClose }) {
   const handleShare = async (e) => {
     e.preventDefault();
     setError("");
-    if (!isValidPhone(recipientPhone.trim())) {
-      setError("Enter a valid recipient phone number (e.g., +254... or 07...)");
-      return;
-    }
     setIsSubmitting(true);
     try {
-      await onSubmit({ recipientPhone: recipientPhone.trim(), message: message.trim() });
-      // Modal closes in parent after submit, so we don't reset here
+      const recipientPhones = normalizePhones(recipientsRaw);
+      if (!recipientPhones.length) {
+        setError("Enter at least one valid phone number.");
+        setIsSubmitting(false);
+        return;
+      }
+      // Call parent handler (api.shareDocument)
+      const results = await onSubmit({ recipientPhones, message });
+      const duplicate = results.find(res => res.status === "duplicate");
+      const failed   = results.find(res => res.status === "error");
+      if (duplicate || failed) {
+        setError(
+          duplicate
+            ? `Already shared to: ${duplicate.recipient}`
+            : `Error sharing to: ${failed.recipient}`
+        );
+      } else {
+        onClose?.();
+        onSuccess?.(document, recipientPhones, results);
+      }
     } catch (err) {
-      setError("Failed to share document. Try again.");
+      setError(
+        err?.response?.data?.error ||
+        err?.message ||
+        "Failed to share document. Try again."
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -55,18 +75,20 @@ export default function ShareModal({ document, onSubmit, onClose }) {
           </div>
           <label className="block text-sm mb-1 font-medium">
             <UserIcon className="h-5 w-5 inline-block mr-1 text-gray-400 align-text-bottom" />
-            Recipient Phone
+            Recipient Phone(s)
             <input
               type="text"
-              value={recipientPhone}
-              inputMode="tel"
+              value={recipientsRaw}
               autoFocus
               required
-              placeholder="+254712345678"
+              placeholder="e.g. +2547..., 07..., multiple separated by comma, space or semicolon"
               className="w-full border border-gray-200 rounded px-3 py-2 mt-1 focus:ring-blue-500 focus:ring-2 outline-none"
-              onChange={(e) => setRecipientPhone(e.target.value)}
+              onChange={e => setRecipientsRaw(e.target.value)}
               disabled={isSubmitting}
             />
+            <span className="text-xs text-gray-500">
+              Separate multiple numbers by comma, space, or semicolon
+            </span>
           </label>
           <label className="block text-sm font-medium mb-1">
             <ChatBubbleLeftRightIcon className="h-5 w-5 inline-block mr-1 text-gray-400 align-text-bottom" />
@@ -77,14 +99,14 @@ export default function ShareModal({ document, onSubmit, onClose }) {
               rows={2}
               placeholder="Add a short message (140 chars max)"
               className="mt-1 w-full border border-gray-200 rounded px-3 py-2 focus:ring-blue-500 focus:ring-2 outline-none resize-none"
-              onChange={(e) => setMessage(e.target.value)}
+              onChange={e => setMessage(e.target.value)}
               disabled={isSubmitting}
             />
           </label>
           {error && <div className="text-red-600 text-sm">{error}</div>}
           <button
             type="submit"
-            className={`w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded font-semibold transition disabled:opacity-60`}
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded font-semibold transition disabled:opacity-60"
             disabled={isSubmitting}
           >
             {isSubmitting ? "Sharing..." : "Share"}
@@ -94,4 +116,5 @@ export default function ShareModal({ document, onSubmit, onClose }) {
     </div>
   );
 }
+
 // This component provides a modal for sharing documents with a recipient's phone number and an optional message.
