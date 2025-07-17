@@ -41,7 +41,22 @@ exports.listPriority = async (req, res) => {
   }
 };
 
-// ========== 4. Download Document ==========
+// ========== 4. List Sent Documents (Shared By This User) ==========
+exports.listSent = async (req, res) => {
+  try {
+    const phone = req.user.phone;
+    // Shows all docs the user has shared with others (not to themselves):
+    const docs = await Document.find({
+      'uploadInfo.uploaderNumber': phone,
+      'attributes.owner': { $ne: phone }
+    });
+    res.status(200).json(docs);
+  } catch (e) {
+    res.status(500).json({ error: 'Error fetching sent documents.' });
+  }
+};
+
+// ========== 5. Download Document ==========
 exports.downloadDocument = async (req, res) => {
   try {
     const doc = await Document.findById(req.params.id);
@@ -76,7 +91,7 @@ exports.downloadDocument = async (req, res) => {
   }
 };
 
-// ========== 5. Delete Document (by owner only) ==========
+// ========== 6. Delete Document (by owner only) ==========
 exports.deleteDocument = async (req, res) => {
   try {
     const phone = req.user.phone;
@@ -98,7 +113,7 @@ exports.deleteDocument = async (req, res) => {
   }
 };
 
-// ========== 6. Toggle Priority ==========
+// ========== 7. Toggle Priority ==========
 exports.togglePriority = async (req, res) => {
   try {
     const phone = req.user.phone;

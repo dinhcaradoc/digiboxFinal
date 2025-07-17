@@ -13,59 +13,79 @@ exports.shareDocument = async (req, res) => {
     if (doc.attributes.owner !== req.user.phone)
       return res.status(403).json({ error: 'You do not own this document.' });
 
-    const { recipient, message } = req.body;
-    if (!recipient) return res.status(400).json({ error: 'Recipient phone required.' });
+    const { recipients, message } = req.body;
+    if (!recipients || !Array.isArray(recipients) || recipients.length === 0)
+      return res.status(400).json({ error: 'Recipients array required.' });
 
-    // Registered recipient?
-    const recipientUser = await User.findOne({ phone: recipient });
-    if (recipientUser) {
-      // Copy doc as new for recipient's inbox
-      const sharedDoc = new Document({
-        ...doc.toObject(),
-        _id: undefined,
-        attributes: {
-          ...doc.attributes,
-          owner: recipient
-        },
-        uploadInfo: {
-          uploaderNumber: req.user.phone,
-          recipientPhone: recipient,
-          message: message || '',
-          isAnonymous: false
-        },
-        priority: false,
-        isTemporary: false,
-        createdAt: new Date(),
-        updatedAt: new Date()
+    const results = [];
+    for (const recipientRaw of recipients) {
+      const recipient = recipientRaw.startsWith("+") ? recipientRaw : `+${recipientRaw.replace(/^0+/, "")}`;
+      // Duplicate prevention
+      const existing = await Document.findOne({
+        'uploadInfo.uploaderNumber': req.user.phone,
+        'uploadInfo.recipientPhone': recipient,
+        'attributes.owner': recipient,
+        name: doc.name,
       });
-      await sharedDoc.save();
-      await sendSMS({ to: recipient, message: `A document was shared with you. Log in to DigiBox Chapisha to view.` });
-    } else {
-      // Not registered: create temp/anon doc for recipient, send SMS invite (no ownerId)
-      const tempDoc = new Document({
-        ...doc.toObject(),
-        _id: undefined,
-        attributes: {
-          ...doc.attributes,
-          owner: recipient
-        },
-        uploadInfo: {
-          uploaderNumber: req.user.phone,
-          recipientPhone: recipient,
-          message: message || '',
-          isAnonymous: true
-        },
-        isTemporary: true,
-        expiresAt: new Date(Date.now() + 72 * 60 * 60 * 1000),
-        priority: false,
-        createdAt: new Date(),
-        updatedAt: new Date()
-      });
-      await tempDoc.save();
-      await sendSMS({ to: recipient, message: `A document was shared with you on DigiBox Chapisha. Register to access!` });
+      if (existing) {
+        results.push({ recipient, status: "duplicate" });
+        continue;
+      }
+      // Registered recipient?
+      const recipientUser = await User.findOne({ phone: recipient });
+      if (recipientUser) {
+        const sharedDoc = new Document({
+          ...doc.toObject(),
+          _id: undefined,
+          driveFileId: doc.driveFileId,
+          filename: doc.filename,
+          attributes: { ...doc.attributes, owner: recipient },
+          uploadInfo: {
+            uploaderNumber: req.user.phone,
+            recipientPhone: recipient,
+            message: message || "",
+            isAnonymous: false,
+          },
+          isTemporary: false,
+          priority: false,
+          ownerId: recipientUser._id,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        });
+        await sharedDoc.save();
+        await sendSMS({ to: recipient, message: `A document was shared with you. Log in to DigiBox Chapisha to view.` });
+        results.push({ recipient, status: "shared" });
+      } else {
+        // Not registered
+        const tempDoc = new Document({
+          ...doc.toObject(),
+          _id: undefined,
+          driveFileId: doc.driveFileId,
+          filename: doc.filename,
+          attributes: { ...doc.attributes, owner: recipient },
+          uploadInfo: {
+            uploaderNumber: req.user.phone,
+            recipientPhone: recipient,
+            message: message || "",
+            isAnonymous: true,
+          },
+          isTemporary: true,
+          expiresAt: new Date(Date.now() + 72 * 60 * 60 * 1000),
+          priority: false,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        });
+        await tempDoc.save();
+        await sendSMS({ to: recipient, message: `A document was shared with you on DigiBox Chapisha. Register to access!` });
+        results.push({ recipient, status: "invited" });
+      }
     }
-    res.status(200).json({ success: true, message: 'Document shared.' });
+    return res.status(200).json({
+      success: true,
+      message: `Document shared with ${results.length} recipient(s)`,
+      results,
+    });
   } catch (e) {
-    res.status(500).json({ error: 'Error sharing the document.' });
+    res.status(500).json({ error: 'Error sharing document.' });
   }
 };

@@ -17,6 +17,9 @@ router.get('/inbox', checkAuthenticatedAPI, documentsService.listInbox);
 // GET /api/documents/quickbox - Docs marked as priority (QuickBox)
 router.get('/quickbox', checkAuthenticatedAPI, documentsService.listPriority);
 
+// GET /api/documents/sent - List docs this user has shared (as sender)
+router.get('/sent', checkAuthenticatedAPI, documentsService.listSent);
+
 // GET /api/documents/:id/download - Download a document
 router.get('/:id/download', checkAuthenticatedAPI, documentsService.downloadDocument);
 
