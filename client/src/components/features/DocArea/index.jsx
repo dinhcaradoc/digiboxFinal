@@ -22,8 +22,10 @@ export default function DocArea({
   onDownload,
   onDelete,
   onShare,
+  onPriorityToggle,
   filterLabel = "document",
   selectedFile = null,
+  userPhone,
 }) {
   const [searchTerm, setSearchTerm] = useState("");
 
@@ -80,6 +82,7 @@ export default function DocArea({
                 onDownload={onDownload}
                 onDelete={onDelete}
                 onShare={onShare}
+                onPriorityToggle={onPriorityToggle}
               />
             ))}
           </div>

@@ -1,7 +1,14 @@
 // src/components/features/DocArea/DocumentRow.jsx
 // This component renders a single row for a document in the document list.
-import React from "react";
-import { DocumentTextIcon, EyeIcon, ArrowDownTrayIcon, TrashIcon, ShareIcon } from "@heroicons/react/24/outline";
+import React, { useState } from "react";
+import {
+  DocumentTextIcon,
+  EyeIcon,
+  ArrowDownTrayIcon,
+  TrashIcon,
+  ShareIcon,
+} from "@heroicons/react/24/outline";
+import { setDocumentPriority } from "../../../services/api"; // <-- Ensure this import
 
 // Infer file type for color and styling
 function getFileType(filename) {
@@ -27,13 +34,32 @@ function formatDate(dateString) {
 }
 
 /**
- * Renders one row of a document in the list.
+ * Renders one row of a document in the list, including priority (star) toggle.
  */
 export default function DocumentRow({
   doc,
   onView, onDownload, onDelete, onShare,
+  onPriorityToggle,
+  userPhone,
 }) {
   const fileType = getFileType(doc.name);
+  const [isTogglingPriority, setIsTogglingPriority] = useState(false);
+  const isOwner = userPhone && doc.attributes && doc.attributes.owner === userPhone;
+  const [isPriority, setIsPriority] = useState(!!doc.priority);
+
+  const handlePriorityToggle = async () => {
+    setIsTogglingPriority(true);
+    try {
+      await setDocumentPriority(doc._id || doc.id);
+      setIsPriority((val) => !val);
+      if (onPriorityToggle) onPriorityToggle(doc._id || doc.id);
+    } catch (err) {
+      // You can show a toast/snackbar here for error feedback
+    } finally {
+      setIsTogglingPriority(false);
+    }
+  };
+
   return (
     <div 
       className="flex items-start p-4 rounded-lg border border-gray-100 bg-gray-50 hover:bg-blue-50 transition-colors"
@@ -101,6 +127,20 @@ export default function DocumentRow({
             title="Delete document"
           >
             <TrashIcon className="w-5 h-5" />
+          </button>
+        )}
+        {/* ----- Priority Star Toggle ----- */}
+        {isOwner && (
+          <button
+            onClick={handlePriorityToggle}
+            className={`p-2 text-xl rounded-full transition-colors ${
+              isPriority ? "text-yellow-500" : "text-gray-300"
+            } hover:text-yellow-500`}
+            title={isPriority ? "Remove from QuickBox" : "Add to QuickBox"}
+            aria-label={isPriority ? "Unstar (Remove from QuickBox)" : "Star (Add to QuickBox)"}
+            disabled={isTogglingPriority}
+          >
+            {isPriority ? "★" : "☆"}
           </button>
         )}
       </div>
