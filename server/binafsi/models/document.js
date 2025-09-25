@@ -46,7 +46,7 @@ const DocumentSchema = new mongoose.Schema({
     message: { type: String, required: false },
     isAnonymous: { type: Boolean, default: false }
   },
-  priority: { type: Boolean, default: false },
+  priority: { type: Boolean, default: false }, //Flag for Quickbox/priority documents
   isTemporary: { type: Boolean, default: false },
   source: { 
     type: String, 
