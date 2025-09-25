@@ -2,10 +2,10 @@ const mongoose = require('mongoose');
 
 const otpSchema = new mongoose.Schema({
   token: {
-    type: Number
+    type: Number, required: true
   },
   documentId: {
-    type: String
+    type: String, required: true
   },
   timeStamp: { type: Date, default: Date.now, expires: '30m' }
 })
