@@ -49,7 +49,7 @@ export const getDocuments = () => api.get('/api/documents');
 export const getInbox = () => api.get('/api/inbox');
 
 /** GET: Priority-flagged documents (QuickBox.jsx) */
-export const getPriority = () => api.get('/api/quickbox'); // adjust if your backend uses another route
+export const getPriority = () => api.get('/api/documents/quickbox'); // adjust if your backend uses another route
 
 /** GET: Documents you've sent/shared (Sent.jsx) */
 export const getSentDocs = () => api.get('/api/documents/sent');
