@@ -1,7 +1,8 @@
 //This module handles OTP methods for file retrieval functions
 const
     otplib = require('otplib'),
-    fs = require('fs');
+    fs = require('fs'),
+    path = require('path');
 
 const Document = require("../../models/document");
 const otp = require("../../models/printCodes")
@@ -54,19 +55,19 @@ exports.getOTP = async function (docId) {
 //     res.send(token);
 // }
 
-function validateOTP(token) {
+async function validateOTP(token) {
     const now = Date.now();
 
-    const authcode = otp.findOne({token: token});
+    const otpDoc = await otp.findOne({ token: token });
 
-    if (authcode) {
+    if (otpDoc) {
         //Check for expiry
         if (otp.timeStamp) {
             //valid unexpired OTP
             return { valid: true, documentId: otp.documentId };
         } else {
             //Expired OTP, remove from array
-            otp.deleteOne({token: authcode});
+            otp.deleteOne({ token: otpDoc });
             // fs.writeFileSync('binafsi/database/fileInfo.json', JSON.stringify(otps, null, 2));
         }
     }
@@ -75,7 +76,46 @@ function validateOTP(token) {
     return { valid: false };
 }
 
-exports.printDoc = (req, res) => {
+exports.printDoc = async (req, res) => {
+  try {
+    const { otp } = req.params;
+    const { valid, documentId } = await validateOTP(otp);
+
+    if (!valid) {
+      return res.status(410).json({ message: "Print code expired or invalid." });
+    }
+
+    const doc = await Document.findById(documentId);
+    if (!doc) {
+      return res.status(404).json({ message: 'Document not found.' });
+    }
+
+    if (doc.storageType === 'local') {
+      const filePath = path.resolve(doc.attributes.location);
+      if (!fs.existsSync(filePath)) return res.status(404).json({ message: 'File not found.' });
+
+      return res.sendFile(filePath, {
+        headers: {
+          'Content-Disposition': `inline; filename="${doc.filename || doc.name}"`,
+          'Content-Type': doc.attributes.mimetype || 'application/pdf'
+        }
+      });
+    }
+
+    if (doc.storageType === "google_drive") {
+      const downloadLink = doc.attributes?.downloadLink || doc.attributes?.location;
+      if (downloadLink) return res.redirect(downloadLink);
+      return res.status(501).json({ message: "Google Drive file not available." });
+    }
+
+    return res.status(500).json({ message: "Unsupported storage type." });
+  } catch (err) {
+    console.error("PrintDoc GET error:", err);
+    return res.status(500).json({ message: "Server error." });
+  }
+};
+
+/* (req, res) => {
     // res.send(data);
     let { otp } = req.query;
 
@@ -117,4 +157,4 @@ exports.printDoc = (req, res) => {
     if (!valid) {
         res.send("Invalid OTP")
     }
-}
+} */
