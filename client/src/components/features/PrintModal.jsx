@@ -17,48 +17,56 @@ const PrintModal = ({ onClose }) => {
     setIsLoading(true);
     setError('');
 
+    // try {
+    //   // **Replace with your actual API endpoint
+    //   const response = await fetch("/api/print", {
+    //     method: "POST",
+    //     headers: {
+    //       "Content-Type": "application/json",
+    //     },
+    //     body: JSON.stringify({ docOTP }),
+    //   });
+
+    //   if (response.ok) {
+    //     const blob = await response.blob();
+    //     const url = window.URL.createObjectURL(blob);
+
+    //     //Open in a new tab
+    //     window.open(url, "_blank");
+
+    //     //Clean up Url Object but after a slight delay that ensures the tab loads the url
+    //     setTimeout(() => {
+    //       window.URL.revokeObjectURL(url);
+    //     }, 2000);
+
+    //     onClose();
+    //   } else {
+    //     const errorData = await response.json();
+    //     setError(errorData.message || "Failed to get document. Please check your document otp and try again.");
+    //   }
+    // // }
+    // catch (error) {
+    //   setError("An error occurred while processing your request. Please try again.");
+    // }
+    // finally {
+    //   setIsLoading(false);
+    // }
     try {
-      // **Replace with your actual API endpoint
-      const response = await fetch("/api/print", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ docOTP }),
-      });
-
-      if (response.ok) {
-        const blob = await response.blob();
-        const url = window.URL.createObjectURL(blob);
-
-        //Open in a new tab
-        window.open(url, "_blank");
-
-        //Clean up Url Object but after a slight delay that ensures the tab loads the url
-        setTimeout(() => {
-          window.URL.revokeObjectURL(url);
-        }, 2000);
-
-        onClose();
-      } else {
-        const errorData = await response.json();
-        setError(errorData.message || "Failed to get document. Please check your document otp and try again.");
-      }
-    }
-    catch (error) {
-      setError("An error occurred while processing your request. Please try again.");
-    }
-    finally {
+      window.open(`/print/download/${docOTP}`, '_blank');
+      setIsLoading(false);
+      onClose();
+    } catch (error) {
+      setError("Could not open download link. Try again.");
       setIsLoading(false);
     }
   };
 
   return (
     <div className="fixed inset-0 flex items-center justify-center z-50 p-4 bg-black/90"
-    onClick={(e) => { // Close modal on backdrop click
-      if (e.target === e.currentTarget)
-        onClose()
-    }}>
+      onClick={(e) => { // Close modal on backdrop click
+        if (e.target === e.currentTarget)
+          onClose()
+      }}>
       <div className="bg-white rounded-lg shadow-xl w-full max-w-md overflow-hidden border border-gray-200">
         {/* Modal header */}
         <div className="flex justify-between items-center bg-blue-600 text-white p-4">
@@ -97,10 +105,10 @@ const PrintModal = ({ onClose }) => {
               id="docOTP"
               value={docOTP}
               onChange={(e) => {
-                /^\d*$/.test(e.target.value) 
-                ? (setDocOTP(e.target.value), setError(''))
-                : 
-                setError('Invalid character. OTP should be numeric!');
+                /^\d*$/.test(e.target.value)
+                  ? (setDocOTP(e.target.value), setError(''))
+                  :
+                  setError('Invalid character. OTP should be numeric!');
               }}
               className="w-full border border-gray-300 rounded px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-600"
               placeholder="Enter document print code"
