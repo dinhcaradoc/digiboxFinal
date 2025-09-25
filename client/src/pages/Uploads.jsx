@@ -11,6 +11,7 @@ import {
   deleteDocument,
   shareDocument,
 } from "../services/api";
+import { useAuth } from "../contexts/AuthContext";
 
 const Uploads = () => {
   const [documents, setDocuments] = useState([]);
@@ -20,6 +21,8 @@ const Uploads = () => {
   // Share modal state
   const [showShareModal, setShowShareModal] = useState(false);
   const [selectedDocToShare, setSelectedDocToShare] = useState(null);
+
+  const { user } = useAuth();
 
   // Fetch uploaded documents on mount and after upload/delete/share
   const fetchDocuments = async () => {
@@ -96,6 +99,10 @@ const Uploads = () => {
     setSelectedDocToShare(null);
   };
 
+  const handlePriorityToggle = async () => {
+    await fetchDocuments();
+  };
+
   return (
     <section className="container mx-auto px-4 py-6">
       <h2 className="text-2xl font-semibold text-gray-900 mb-4">My Uploads</h2>
@@ -110,6 +117,8 @@ const Uploads = () => {
         onDelete={handleDelete}
         onShare={handleShare}
         filterLabel="document"
+        onPriorityToggle={handlePriorityToggle}
+        userPhone={user?.phone}
       />
 
       {/* Share Modal, if in use */}

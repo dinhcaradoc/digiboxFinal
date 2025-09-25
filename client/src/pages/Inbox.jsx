@@ -5,6 +5,7 @@ import DocArea from "../components/features/DocArea";
 import ShareModal from "../components/features/ShareModal";
 import { getInbox, downloadDocument, deleteDocument, shareDocument } from "../services/api";
 import Head from "../components/layout/Head";
+import { useAuth } from "../contexts/AuthContext"; 
 
 const Inbox = () => {
   const [documents, setDocuments] = useState([]);
@@ -12,6 +13,7 @@ const Inbox = () => {
   const [error, setError] = useState("");
   const [showShareModal, setShowShareModal] = useState(false);
   const [selectedDocToShare, setSelectedDocToShare] = useState(null);
+  const { user } = useAuth(); 
 
   const fetchInbox = async () => {
     setIsLoading(true);
@@ -65,6 +67,10 @@ const Inbox = () => {
     setSelectedDocToShare(null);
   };
 
+  const handlePriorityToggle = async () => {
+    await fetchInbox();
+  };
+
   return (
     <>
       <Head title="Inbox" description="View and manage your received documents" />
@@ -78,6 +84,8 @@ const Inbox = () => {
           onDelete={handleDelete}
           onShare={handleShare}
           filterLabel="inbox document"
+          onPriorityToggle={handlePriorityToggle}
+          userPhone={user?.phone}
         />
         {showShareModal && selectedDocToShare && (
           <ShareModal

@@ -4,12 +4,14 @@ import React, { useEffect, useState } from "react";
 import DocArea from "../components/features/DocArea";
 import ShareModal from "../components/features/ShareModal";
 import { getPriority, downloadDocument, deleteDocument, shareDocument } from "../services/api";
+import {useAuth} from "../contexts/AuthContext";
 import Head from "../components/layout/Head";
 
 const QuickBox = () => {
   const [documents, setDocuments] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
+  const { user } = useAuth();
   const [showShareModal, setShowShareModal] = useState(false);
   const [selectedDocToShare, setSelectedDocToShare] = useState(null);
 
@@ -65,6 +67,10 @@ const QuickBox = () => {
     setSelectedDocToShare(null);
   };
 
+  const handlePriorityToggle = async () => {
+    await fetchPriorityDocs();
+  };
+
   return (
     <>
       <Head title="Priority Docs" description="Fast access to your high-priority documents." />
@@ -77,6 +83,8 @@ const QuickBox = () => {
           onDownload={handleDownload}
           onDelete={handleDelete}
           onShare={handleShare}
+          onPriorityToggle={handlePriorityToggle}
+          userPhone={user?.phone}
           filterLabel="priority document"
         />
         {showShareModal && selectedDocToShare && (
